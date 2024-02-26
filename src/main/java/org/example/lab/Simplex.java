@@ -16,6 +16,8 @@ public class Simplex {
      * c - целевая функция
      */
     double[] objectiveFunctionCoefficients;
+
+    double[] additionFunction;
     int numOfEquations;
     int numOfVariables;
 
@@ -26,6 +28,8 @@ public class Simplex {
         this.coefficients = coefficients;
         this.constants = constants;
         this.objectiveFunctionCoefficients = objectiveFunctionCoefficients;
+
+        this.additionFunction = new double[numOfEquations];
 
         SimplexTable simplexTableFirst =newStartSimplexTable();
 
@@ -192,10 +196,16 @@ public class Simplex {
     }
 
     public SimplexTable newStartSimplexTable(){
+        double[][] additionalMatrix = createIdentityMatrix(numOfVariables);
+        double[] firstSolution = calculateSolution(additionFunction, coefficients, objectiveFunctionCoefficients);
+        double[] secondSolution = calculateSolution(additionFunction, additionalMatrix, additionFunction);
+
         return new SimplexTable(this)
                 .setFirstMatrix(coefficients)
-                .setSecondMatrix(createIdentityMatrix(numOfVariables))
+                .setSecondMatrix(additionalMatrix)
                 .setConstants(constants)
+                .setFirstSolution(firstSolution)
+                .setSecondSolution(secondSolution)
                 .construct()
                 .printCollRowsTable();
     }

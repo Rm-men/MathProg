@@ -30,8 +30,8 @@ public class SimplexTable {
     String[][] rowCols;
     Simplex simplex;
 
-    public double[] solutions;
-    public double[] solutionsAddition;
+    public double[] firstSolution;
+    public double[] secondSolution;
     public double[] Q;
     public double resultF;
     public double[] Ci;
@@ -93,13 +93,10 @@ public class SimplexTable {
         rowCols[rows - 1][2] = String.valueOf(resultF);
 
         // * Последняя строка решений
-        solutions = calculateSolution(additionalVariables, firstMatrix, objectiveFunctionCoefficients);
-        insertRow(solutions,  rows - 1, startColumn);
+        insertRow(firstSolution,  rows - 1, startColumn);
+        insertRow(secondSolution,  rows - 1, startColumn + simplex.numOfEquations);
 
-        solutionsAddition = calculateSolution(additionalVariables, secondMatrix, additionalVariables);
-        insertRow(solutionsAddition,  rows - 1, startColumn + simplex.numOfEquations);
-
-        int minIndexSolution = findMinIndex(solutions);
+        int minIndexSolution = findMinIndex(firstSolution);
 
         Q = divide(constants, getColumn(firstMatrix, minIndexSolution));
 
@@ -186,6 +183,16 @@ public class SimplexTable {
 
     public SimplexTable setConstants(double[] constants){
         this.constants = constants;
+        return this;
+    }
+
+    public SimplexTable setFirstSolution(double[] firstSolution){
+        this.firstSolution = firstSolution;
+        return this;
+    }
+
+    public SimplexTable setSecondSolution(double[] secondSolution){
+        this.secondSolution = secondSolution;
         return this;
     }
 }
