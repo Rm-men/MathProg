@@ -1,6 +1,6 @@
 package org.example;
 
-import org.example.lab.SimplexMethod;
+import org.example.lab.Simplex;
 
 public class Main {
     public static void main(String[] args) {
@@ -11,8 +11,7 @@ public class Main {
         };
         double[] b = {240, 200, 160};
         double[] F = {4, 5, 4};
-        SimplexMethod simplexMethod = new SimplexMethod(A, b, F);
-        var result = simplexMethod.buildSimplexTableau();
-        simplexMethod.printSimplexTableau();
+        Simplex simplex = new Simplex(A, b, F);
+        var result = simplex.buildSimplexTableau();
     }
 }

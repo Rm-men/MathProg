@@ -2,7 +2,7 @@ package org.example.lab;
 
 import static org.example.lab.Utils.*;
 
-public class SimplexMethod {
+public class Simplex {
 
     /**
      * A - матрица коэффициентов
@@ -19,13 +19,18 @@ public class SimplexMethod {
     int numOfEquations;
     int numOfVariables;
 
-    public SimplexMethod(double[][] coefficients, double[] constants, double[] objectiveFunctionCoefficients) {
+    public Simplex(double[][] coefficients, double[] constants, double[] objectiveFunctionCoefficients) {
+        numOfEquations = coefficients.length;
+        numOfVariables = coefficients[0].length;
+
         this.coefficients = coefficients;
         this.constants = constants;
         this.objectiveFunctionCoefficients = objectiveFunctionCoefficients;
 
-        numOfEquations = coefficients.length;
-        numOfVariables = coefficients[0].length;
+        SimplexTable simplexTableFirst =newStartSimplexTable();
+
+
+
         // Шаг 1: Приведение задачи к стандартной форме
         // Добавление дополнительных переменных и уравнений при необходимости
         // Приведение неравенств к равенствам
@@ -186,6 +191,15 @@ public class SimplexMethod {
         tableau[pivotRow][pivotColumn] = 1;
     }
 
+    public SimplexTable newStartSimplexTable(){
+        return new SimplexTable(this)
+                .setFirstMatrix(coefficients)
+                .setSecondMatrix(createIdentityMatrix(numOfVariables))
+                .setConstants(constants)
+                .construct()
+                .printCollRowsTable();
+    }
+
     public double[][] buildSimplexTableau() {
         int numOfEquations = coefficients.length;
         int numOfVariables = coefficients[0].length;
@@ -207,55 +221,12 @@ public class SimplexMethod {
         return tableau;
     }
 
-    public void printSimplexTableau() {
-        int countAnotherColl = 4;
-        int rows = numOfEquations + 3;
-        int columns = numOfVariables * 2 + countAnotherColl;
-        String[][] collRows = new String[rows][columns];
-        // * Подготовка строк
-        collRows[0][0] = " ";
-        collRows[0][1] = "Ci";
-        collRows[0][2] = " ";
-
-        // Прописывание значений функции и нулей
-        for (int countEquation = 0; countEquation < numOfVariables; countEquation++) {
-            collRows[0][countEquation + countAnotherColl - 1] = String.valueOf(objectiveFunctionCoefficients[countEquation]);
-            collRows[0][countEquation + numOfVariables + countAnotherColl - 1] = "0";
-            collRows[1][countEquation + countAnotherColl - 1] = "X" + (countEquation + 1);
-            collRows[1][countEquation + numOfEquations + countAnotherColl - 1] = "X" + (countEquation + numOfEquations + 1);
+    public static double[] calculateSolution(double[] first, double[][] second, double[] addition) {
+        int count = first.length;
+        double[] solutions = new double[count];
+        for (int i = 0; i < count; i++) {
+            solutions[i] = sum(multiply(first, getColumn(second, i))) - addition[i];
         }
-
-        //  * Подготовка столбцов
-        collRows[1][0] = "Ci";
-        collRows[2][0] = "0";
-        collRows[3][0] = "0";
-        collRows[4][0] = "0";
-
-        collRows[1][1] = "bi";
-
-        // Столбец с X
-        int colOffset = 2;
-        for (int i = 0; i < numOfEquations; i++) {
-            collRows[i + colOffset][1] = "X" + (i + numOfEquations + 1);
-        }
-
-        collRows[rows - 1][1] = "di";
-
-        // Столбец со свободными членами
-        for (int curIndex = 0; curIndex < numOfEquations; curIndex++) {
-            collRows[2 + curIndex][2] = String.valueOf(constants[curIndex]);
-        }
-
-        int startRow = 2;
-        int startColumn = 3;
-        // * Вписать матрицу коэффициентов
-        insertValues(coefficients, collRows, startRow, startColumn);
-
-        // * Вписать единичную матрциу
-        double[][] oneMatrix = createIdentityMatrix(numOfVariables);
-        insertValues(oneMatrix, collRows, startRow, startColumn+numOfVariables);
-
-
-        printCollRowsTable(collRows);
+        return solutions;
     }
 }

@@ -3,62 +3,10 @@ package org.example.lab;
 public class Utils {
     public static int defaultLength = 3;
 
-    public static void printCollRowsTable(String[][] collRows) {
-        int numColumns = collRows[0].length;
-        int[] columnWidths = new int[numColumns];
-
-        // Рассчитать ширину столбцов
-        for (int i = 0; i < numColumns; i++) {
-            int maxWidth = defaultLength;
-            for (String[] row : collRows) {
-                String value = row[i];
-                if (value != null) {
-                    maxWidth = len(value);
-                }
-            }
-            columnWidths[i] = maxWidth;
-        }
-
-        // Вывести таблицу
-        for (String[] row : collRows) {
-            for (int i = 0; i < numColumns; i++) {
-                String format = "| %" + Math.max(columnWidths[i], defaultLength) + "s ";
-                if (row[i] != null) {
-                    if (row[i].matches("^-?\\d+\\.\\d+$") && Double.parseDouble(row[i]) == (int) Double.parseDouble(row[i])) {
-                        System.out.printf(format, (int)(Double.parseDouble(row[i])));
-                    } else
-                        System.out.printf(format, row[i]);
-                } else {
-                    System.out.printf(format, "");
-                }
-            }
-
-            System.out.println("|");
-            for (int i = 0; i < numColumns; i++) {
-                System.out.print("|" + "-".repeat(columnWidths[i] + 2));
-            }
-
-            System.out.println("|");
-        }
-    }
-
     public static int len(String str) {
         return Math.max(defaultLength, str.length());
     }
 
-    public static void insertValues(double[][] source, String[][] destination, int destRow, int destColumn) {
-        for (int i = 0; i < source.length; i++) {
-            for (int j = 0; j < source[0].length; j++) {
-                if (destRow + i < destination.length && destColumn + j < destination[0].length) {
-                    if (source[i][j] == Math.floor(source[i][j])) {
-                        destination[destRow + i][destColumn + j] = String.valueOf((int) source[i][j]);
-                    } else {
-                        destination[destRow + i][destColumn + j] = String.valueOf(source[i][j]);
-                    }
-                }
-            }
-        }
-    }
 
     public static double[][] createIdentityMatrix(int size) {
         double[][] identityMatrix = new double[size][size];
@@ -66,5 +14,71 @@ public class Utils {
             identityMatrix[i][i] = 1.0;
         }
         return identityMatrix;
+    }
+
+    public static double[] multiply(double[] arr1, double[] arr2) {
+        if (arr1.length != arr2.length) {
+            throw new IllegalArgumentException("Arrays must have the same length");
+        }
+        double[] result = new double[arr1.length];
+        for (int i = 0; i < arr1.length; i++) {
+            result[i] = arr1[i] * arr2[i];
+        }
+        return result;
+    }
+
+    public static double[] divide(double[] arr1, double[] arr2) {
+        if (arr1.length != arr2.length) {
+            throw new IllegalArgumentException("Arrays must have the same length");
+        }
+        double[] result = new double[arr1.length];
+        for (int i = 0; i < arr1.length; i++) {
+            result[i] = arr1[i] / arr2[i];
+        }
+        return result;
+    }
+
+    public static String[] divideString(double[] arr1, double[] arr2) {
+        if (arr1.length != arr2.length) {
+            throw new IllegalArgumentException("Arrays must have the same length");
+        }
+        String[] result = new String[arr1.length];
+        for (int i = 0; i < arr1.length; i++) {
+            result[i] = arr1[i] + "/" + arr2[i];
+        }
+        return result;
+    }
+
+    public static double sum(double[] arr) {
+        double sum = 0;
+        for (int i = 0; i < arr.length; i++) {
+            sum += arr[i];
+        }
+        return sum;
+    }
+
+    public static double[] getColumn(double[][] matrix, int columnIndex) {
+        double[] column = new double[matrix.length];
+        for (int i = 0; i < matrix.length; i++) {
+            column[i] = matrix[i][columnIndex];
+        }
+        return column;
+    }
+
+    public static double[] merge(double[] arr1, double[] arr2) {
+        double[] merged = new double[arr1.length + arr2.length];
+        System.arraycopy(arr1, 0, merged, 0, arr1.length);
+        System.arraycopy(arr2, 0, merged, arr1.length, arr2.length);
+        return merged;
+    }
+
+    public static int findMinIndex(double[] arr) {
+        int minIndex = 0;
+        for (int i = 1; i < arr.length; i++) {
+            if (arr[i] < arr[minIndex]) {
+                minIndex = i;
+            }
+        }
+        return minIndex;
     }
 }
