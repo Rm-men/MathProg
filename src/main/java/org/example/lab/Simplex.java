@@ -1,5 +1,7 @@
 package org.example.lab;
 
+import java.util.Arrays;
+
 import static org.example.lab.Utils.*;
 
 public class Simplex {
@@ -18,6 +20,7 @@ public class Simplex {
     double[] objectiveFunctionCoefficients;
 
     double[] additionFunction;
+    double[][] additionalMatrix;
     int numOfEquations;
     int numOfVariables;
 
@@ -30,9 +33,10 @@ public class Simplex {
         this.objectiveFunctionCoefficients = objectiveFunctionCoefficients;
 
         this.additionFunction = new double[numOfEquations];
+        this.additionalMatrix = createIdentityMatrix(numOfVariables);
 
-        SimplexTable simplexTableFirst =newStartSimplexTable();
-
+        SimplexTable firstSimplexTable = newStartSimplexTable();
+        SimplexTable secondSimplexTable = newSecondtSimplexTable(firstSimplexTable);
 
 
         // Шаг 1: Приведение задачи к стандартной форме
@@ -195,19 +199,75 @@ public class Simplex {
         tableau[pivotRow][pivotColumn] = 1;
     }
 
-    public SimplexTable newStartSimplexTable(){
-        double[][] additionalMatrix = createIdentityMatrix(numOfVariables);
+    public SimplexTable newStartSimplexTable() {
         double[] firstSolution = calculateSolution(additionFunction, coefficients, objectiveFunctionCoefficients);
         double[] secondSolution = calculateSolution(additionFunction, additionalMatrix, additionFunction);
+        int minIndexSolution = findMinIndex(firstSolution);
+        double[] minCol = getColumn(coefficients, minIndexSolution);
+        double[] Q = divide(constants, minCol);
 
-        return new SimplexTable(this)
+
+        SimplexTable first = new SimplexTable(this)
+                .setTableName("First result")
                 .setFirstMatrix(coefficients)
                 .setSecondMatrix(additionalMatrix)
                 .setConstants(constants)
                 .setFirstSolution(firstSolution)
                 .setSecondSolution(secondSolution)
-                .construct()
-                .printCollRowsTable();
+                .setQ(Q)
+                .construct();
+
+
+        System.out.println("Столбец с минимальным значением: X" + (minIndexSolution + 1));
+        System.out.println("Строка с минимальным значением Q: " + (first.minRowIndexSolution + 1));
+        return first.printCollRowsTable();
+    }
+
+    public SimplexTable newSecondtSimplexTable(SimplexTable first) {
+        int minQIndex = first.minQIndex;
+        double[] minCol = first.minCol;
+        int minColIndex = first.minIndexFirstSolution;
+
+        double divideNumber = first.firstMatrix[minQIndex][minColIndex];
+
+        double[] multipleResult = multiply(minCol, first.minQ);
+        double[] newConstants = subtraction(constants, multipleResult);
+
+        newConstants[minQIndex] = first.constants[minQIndex] /divideNumber;
+
+        double[][] newFirstMatrix =  calculateNewMatrix(first.firstMatrix, first);
+        double[][] newSecondMatrix = calculateNewMatrix(first.secondMatrix, first);
+
+        // double[] newFirst = divideRow(newConstants, first.minQIndex, divideNumber);
+
+        double[] newCi = first.Ci;
+        newCi[minQIndex] = objectiveFunctionCoefficients[minColIndex];
+
+        double[] newFirstSolution = calculateSolution(first.Ci, newFirstMatrix, objectiveFunctionCoefficients);
+        double[] newSecondSolution = calculateSolution(first.Ci, newSecondMatrix, additionFunction);
+
+
+        int minIndexSolution = findMinIndex(newFirstSolution);
+        double[] minColSolution = getColumn(newFirstMatrix, minIndexSolution);
+
+        int newMin = findMinIndex(newFirstSolution);
+
+        double[] newQ = divide(newConstants, minColSolution);
+
+        SimplexTable secondSimplexTable = new SimplexTable(this)
+                .setCi(newCi)
+                .setTableName("First result")
+                .setFirstMatrix(newFirstMatrix)
+                .setSecondMatrix(newSecondMatrix)
+                .setConstants(newConstants)
+                .setFirstSolution(newFirstSolution)
+                .setSecondSolution(newSecondSolution)
+                .setQ(newQ)
+                .construct();
+
+
+        System.out.println("Столбец с минимальным значением: X" + (minColIndex + 1));
+        return secondSimplexTable.printCollRowsTable();
     }
 
     public double[][] buildSimplexTableau() {
@@ -238,5 +298,28 @@ public class Simplex {
             solutions[i] = sum(multiply(first, getColumn(second, i))) - addition[i];
         }
         return solutions;
+    }
+
+
+    public static double[][] newSolution(double[][] firstMatrix, double[] minCol) {
+        return subtraction(firstMatrix, multiplyCols(firstMatrix, minCol));
+    }
+
+
+    public static double[][] calculateNewMatrix(double[][] original, SimplexTable oldTable) {
+        int matrixLen = original.length;
+        int minQIndex = oldTable.minQIndex;
+        int minColIndex = oldTable.minColIndexSolution;
+        double[] minCol = oldTable.minCol;
+        double[] minRowDivided = divide(original[minQIndex], minCol[minQIndex]);
+
+        for (int row = 0; row < matrixLen; row++) {
+            if (row != minQIndex) {
+                for (int col = 0; col < matrixLen; col++)
+                    original[row][col] -= minCol[row]*minRowDivided[col];
+            }
+        }
+
+        return replaceRow(original, minQIndex, minRowDivided);
     }
 }

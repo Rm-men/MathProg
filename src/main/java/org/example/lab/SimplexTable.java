@@ -1,6 +1,7 @@
 package org.example.lab;
 
-import static org.example.lab.Simplex.calculateSolution;
+import java.math.BigDecimal;
+
 import static org.example.lab.Utils.*;
 
 public class SimplexTable {
@@ -13,6 +14,8 @@ public class SimplexTable {
      * Дополнительное количество столбцов по умолчанию
      */
     final int additionColumns = 3;
+
+    public String tableName;
     // endregion
 
     // region Содержимое таблицы
@@ -25,16 +28,31 @@ public class SimplexTable {
     double[] objectiveFunctionCoefficients;
     double[] additionalVariables;
     double[] mergedArray;
+    int minIndexFirstSolution;
+    int minIndexSecondSolution;
+    int minQIndex;
     // endregion
 
     String[][] rowCols;
     Simplex simplex;
 
+    /**
+     * Левая матрица
+     */
     public double[] firstSolution;
+
+    /**
+     * Правая матрица
+     */
     public double[] secondSolution;
     public double[] Q;
     public double resultF;
     public double[] Ci;
+
+    int minColIndexSolution;
+    int minRowIndexSolution;
+    double[] minCol;
+    double minQ;
 
     SimplexTable(Simplex simplex) {
         this.simplex = simplex;
@@ -44,7 +62,7 @@ public class SimplexTable {
         this.Ci = new double[simplex.numOfEquations];
     }
 
-    public SimplexTable construct(){
+    public SimplexTable construct() {
         int countAnotherColl = 4;
         int rows = simplex.numOfEquations + 3;
         int columns = simplex.numOfVariables * 2 + countAnotherColl;
@@ -64,7 +82,7 @@ public class SimplexTable {
 
         //  * Подготовка столбцов
         rowCols[1][0] = "Ci";
-        insertColumn(additionalVariables, 2, 0);
+        insertColumn(Ci, 2, 0);
         rowCols[1][1] = "bi";
 
         // Столбец с X
@@ -89,23 +107,40 @@ public class SimplexTable {
         insertValues(secondMatrix, startRow, startColumn + simplex.numOfVariables);
 
         // * Высчитать для целевой функции
-        resultF = sum(multiply(additionalVariables, constants));
-        rowCols[rows - 1][2] = String.valueOf(resultF);
+
 
         // * Последняя строка решений
-        insertRow(firstSolution,  rows - 1, startColumn);
-        insertRow(secondSolution,  rows - 1, startColumn + simplex.numOfEquations);
+        if (firstSolution != null && secondSolution != null) {
+            resultF = sum(multiply(additionalVariables, constants));
+            rowCols[rows - 1][2] = String.valueOf(resultF);
+            insertRow(firstSolution, rows - 1, startColumn);
+            minIndexFirstSolution = findMinIndex(firstSolution);
+            insertRow(secondSolution, rows - 1, startColumn + simplex.numOfEquations);
+            minIndexSecondSolution = findMinIndex(secondSolution);
+        }
 
-        int minIndexSolution = findMinIndex(firstSolution);
-
-        Q = divide(constants, getColumn(firstMatrix, minIndexSolution));
 
         rowCols[1][columns - 1] = "Q";
-        insertColumn(Q, 2, columns - 1);
+        if (Q != null) {
+            minQIndex = findMinIndex(Q);
+            insertColumn(Q, 2, columns - 1);
+        }
+
+        if (firstSolution != null) {
+            minColIndexSolution = findMinIndex(firstSolution);
+            minCol = getColumn(simplex.coefficients, minColIndexSolution);
+        }
+        if (Q != null) {
+            minRowIndexSolution = findMinIndex(Q);
+            minQ = Q[minRowIndexSolution];
+        }
+
+
         return this;
     }
 
     public SimplexTable printCollRowsTable() {
+        System.out.println(tableName);
         int numColumns = rowCols[0].length;
         int[] columnWidths = new int[numColumns];
 
@@ -115,7 +150,7 @@ public class SimplexTable {
             for (String[] row : rowCols) {
                 String value = row[i];
                 if (value != null) {
-                    maxWidth = len(value);
+                    maxWidth = maxLen(value, maxWidth);
                 }
             }
             columnWidths[i] = maxWidth;
@@ -142,7 +177,20 @@ public class SimplexTable {
 
             System.out.println("|");
         }
+
+        System.out.print("\n".repeat(2));
         return this;
+    }
+
+    public String removeCharactersAfterDot(String input, int offset) {
+        int dotIndex = input.indexOf('.');
+        if (dotIndex != -1) {
+            int endIndex = dotIndex + offset + 1;
+            if (endIndex < input.length()) {
+                return input.substring(0, endIndex);
+            }
+        }
+        return input;
     }
 
     public void insertColumn(double[] source, int destRow, int destCol) {
@@ -171,28 +219,48 @@ public class SimplexTable {
         }
     }
 
-    public SimplexTable setFirstMatrix(double[][] firstMatrix){
+    public SimplexTable setFirstMatrix(double[][] firstMatrix) {
         this.firstMatrix = firstMatrix;
         return this;
     }
 
-    public SimplexTable setSecondMatrix(double[][] secondMatrix){
+    public SimplexTable setSecondMatrix(double[][] secondMatrix) {
         this.secondMatrix = secondMatrix;
         return this;
     }
 
-    public SimplexTable setConstants(double[] constants){
+    public SimplexTable setConstants(double[] constants) {
         this.constants = constants;
         return this;
     }
 
-    public SimplexTable setFirstSolution(double[] firstSolution){
+    public SimplexTable setFirstSolution(double[] firstSolution) {
         this.firstSolution = firstSolution;
         return this;
     }
 
-    public SimplexTable setSecondSolution(double[] secondSolution){
+    public SimplexTable setSecondSolution(double[] secondSolution) {
         this.secondSolution = secondSolution;
+        return this;
+    }
+
+    public SimplexTable setMinIndex(int minIndex) {
+        this.minIndexFirstSolution = minIndex;
+        return this;
+    }
+
+    public SimplexTable setQ(double[] Q) {
+        this.Q = Q;
+        return this;
+    }
+
+    public SimplexTable setCi(double[] Ci){
+        this.Ci = Ci;
+        return this;
+    }
+
+    public SimplexTable setTableName(String tableName) {
+        this.tableName = tableName;
         return this;
     }
 }
