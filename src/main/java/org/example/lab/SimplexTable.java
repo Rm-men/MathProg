@@ -1,7 +1,7 @@
 package org.example.lab;
 
-import java.math.BigDecimal;
-
+import static org.example.lab.FormatTextUtils.TextFormat.GREEN;
+import static org.example.lab.FormatTextUtils.format;
 import static org.example.lab.Utils.*;
 
 public class SimplexTable {
@@ -48,6 +48,11 @@ public class SimplexTable {
     public double[] Q;
     public double resultF;
     public double[] Ci;
+    public int[] bi;
+    /**
+     * Смещение столбцов
+     */
+    int colOffset = 2;
 
     int minColIndexSolution;
     int minRowIndexSolution;
@@ -60,6 +65,11 @@ public class SimplexTable {
         this.additionalVariables = new double[simplex.numOfEquations];
         this.mergedArray = merge(objectiveFunctionCoefficients, additionalVariables);
         this.Ci = new double[simplex.numOfEquations];
+
+        bi = new int[simplex.numOfEquations];
+        for (int i = 0; i < simplex.numOfEquations; i++) {
+            bi[i] = (i + simplex.numOfEquations + 1);
+        }
     }
 
     public SimplexTable construct() {
@@ -85,11 +95,8 @@ public class SimplexTable {
         insertColumn(Ci, 2, 0);
         rowCols[1][1] = "bi";
 
-        // Столбец с X
-        int colOffset = 2;
-        for (int i = 0; i < simplex.numOfEquations; i++) {
-            rowCols[i + colOffset][1] = "X" + (i + simplex.numOfEquations + 1);
-        }
+        // *Столбец с bi
+        updateBi(bi);
 
         rowCols[rows - 1][1] = "di";
 
@@ -139,6 +146,14 @@ public class SimplexTable {
         return this;
     }
 
+
+    private void updateBi(int[] newBi) {
+        bi = newBi;
+        for (int i = 0; i < newBi.length; i++) {
+            rowCols[i + colOffset][1] = "X" + (bi[i]);
+        }
+    }
+
     public SimplexTable printCollRowsTable() {
         System.out.println(tableName);
         int numColumns = rowCols[0].length;
@@ -148,6 +163,7 @@ public class SimplexTable {
         for (int i = 0; i < numColumns; i++) {
             int maxWidth = defaultLength;
             for (String[] row : rowCols) {
+                row[i] = roundString(row[i], 3);
                 String value = row[i];
                 if (value != null) {
                     maxWidth = maxLen(value, maxWidth);
@@ -156,18 +172,11 @@ public class SimplexTable {
             columnWidths[i] = maxWidth;
         }
 
-        // Вывести таблицу
-        for (String[] row : rowCols) {
-            for (int i = 0; i < numColumns; i++) {
-                String format = "| %" + Math.max(columnWidths[i], defaultLength) + "s ";
-                if (row[i] != null) {
-                    if (row[i].matches("^-?\\d+\\.\\d+$") && Double.parseDouble(row[i]) == (int) Double.parseDouble(row[i])) {
-                        System.out.printf(format, (int) (Double.parseDouble(row[i])));
-                    } else
-                        System.out.printf(format, row[i]);
-                } else {
-                    System.out.printf(format, "");
-                }
+        for (int rowIndex = 0; rowIndex < rowCols.length; rowIndex++) {
+            String[] row = rowCols[rowIndex];
+            for (int colIndex = 0; colIndex < numColumns; colIndex++) {
+                String format = "| %" + Math.max(columnWidths[colIndex], defaultLength) + "s ";
+                System.out.printf(format, row[colIndex]);
             }
 
             System.out.println("|");
@@ -219,6 +228,11 @@ public class SimplexTable {
         }
     }
 
+    public SimplexTable setBi(int[] newBi) {
+        this.bi = newBi;
+        return this;
+    }
+
     public SimplexTable setFirstMatrix(double[][] firstMatrix) {
         this.firstMatrix = firstMatrix;
         return this;
@@ -254,7 +268,7 @@ public class SimplexTable {
         return this;
     }
 
-    public SimplexTable setCi(double[] Ci){
+    public SimplexTable setCi(double[] Ci) {
         this.Ci = Ci;
         return this;
     }
@@ -262,5 +276,20 @@ public class SimplexTable {
     public SimplexTable setTableName(String tableName) {
         this.tableName = tableName;
         return this;
+    }
+
+    public boolean isNotOptimal() {
+        for (double solution : firstSolution) {
+            if (solution < 0) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public void printSolution() {
+        for (int i = 0; i < firstSolution.length; i++) {
+            System.out.println("X" + bi[i] + " = " + roundString(String.valueOf(constants[i]), 3));
+        }
     }
 }

@@ -36,39 +36,12 @@ public class Simplex {
         this.additionalMatrix = createIdentityMatrix(numOfVariables);
 
         SimplexTable firstSimplexTable = newStartSimplexTable();
-        SimplexTable secondSimplexTable = newSecondtSimplexTable(firstSimplexTable);
 
+        while (firstSimplexTable.isNotOptimal()) {
+            firstSimplexTable = newSecondtSimplexTable(firstSimplexTable);
+        }
+        firstSimplexTable.printSolution();
 
-        // Шаг 1: Приведение задачи к стандартной форме
-        // Добавление дополнительных переменных и уравнений при необходимости
-        // Приведение неравенств к равенствам
-        // Приведение задачи к стандартной форме
-        // convertToStandardForm(coefficients, constants, objectiveFunctionCoefficients);
-
-
-        // Шаг 2: Инициализация начального базисного плана
-        // Инициализация начального базисного плана
-        // Выбор начального базиса
-        // Вычисление соответствующих базисных переменных
-
-        // Шаг 3: Проверка оптимальности текущего базисного плана
-        // Проверка оптимальности текущего базисного плана
-        // Проверка коэффициентов целевой функции
-        // Возвращение true, если текущий базисный план оптимален, иначе false
-
-        // Шаг 4: Поиск ведущей строки и столбца
-        // Поиск ведущей строки и столбца
-        // Выбор ведущего элемента для входящей переменной
-        // Возвращение индексов ведущей строки и столбца
-
-        // Шаг 5: Пересчет базисного плана
-        // Пересчет базисного плана
-        // Обновление базисных переменных и соответствующих значений
-
-
-        // Шаг 6: Повторение шагов 3-5 до достижения оптимального решения или обнаружения отсутствия решения
-
-        // Проверка наличия решения и другие возможные случаи
     }
 
     public void convertToStandardForm(double[][] coefficients, double[] constants, double[] objectiveFunctionCoefficients) {
@@ -231,7 +204,7 @@ public class Simplex {
         double divideNumber = first.firstMatrix[minQIndex][minColIndex];
 
         double[] multipleResult = multiply(minCol, first.minQ);
-        double[] newConstants = subtraction(constants, multipleResult);
+        double[] newConstants = subtraction(first.constants, multipleResult);
 
         newConstants[minQIndex] = first.constants[minQIndex] /divideNumber;
 
@@ -254,6 +227,8 @@ public class Simplex {
 
         double[] newQ = divide(newConstants, minColSolution);
 
+        first.bi[minQIndex] = minColIndex+1;
+
         SimplexTable secondSimplexTable = new SimplexTable(this)
                 .setCi(newCi)
                 .setTableName("First result")
@@ -263,6 +238,7 @@ public class Simplex {
                 .setFirstSolution(newFirstSolution)
                 .setSecondSolution(newSecondSolution)
                 .setQ(newQ)
+                .setBi(first.bi)
                 .construct();
 
 
@@ -277,9 +253,7 @@ public class Simplex {
         double[][] tableau = new double[numOfEquations + 1][numOfVariables + 1];
 
         for (int i = 0; i < numOfEquations; i++) {
-            for (int j = 0; j < numOfVariables; j++) {
-                tableau[i][j] = coefficients[i][j];
-            }
+            System.arraycopy(coefficients[i], 0, tableau[i], 0, numOfVariables);
             tableau[i][numOfVariables] = constants[i];
         }
 

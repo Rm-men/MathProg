@@ -214,4 +214,22 @@ public class Utils {
         }
         return minIndex;
     }
+
+    public static String roundString(String value, int digitsAfterDot) {
+        if (value == null) {
+            return "";
+        }
+
+        String[] parts = value.split("\\.");
+        if (parts.length > 1) {
+            if (parts[1].equals("0")) {
+                value = parts[0];
+            } else if (parts[1].length() > digitsAfterDot) {
+                double truncatedValue = Double.parseDouble(value);
+                value = String.format("%." + digitsAfterDot + "f", truncatedValue);
+            }
+        }
+
+        return value;
+    }
 }
