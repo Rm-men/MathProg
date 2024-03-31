@@ -28,8 +28,6 @@ public class SimplexTable {
     double[] objectiveFunctionCoefficients;
     double[] additionalVariables;
     double[] mergedArray;
-    int minIndexFirstSolution;
-    int minIndexSecondSolution;
     Integer minQIndex;
     Integer minColIndexSolution;
     // endregion
@@ -37,18 +35,12 @@ public class SimplexTable {
     String[][] rowCols;
     Simplex simplex;
 
-    /**
-     * Левая матрица
-     */
     public double[] firstSolution;
-
-    /**
-     * Правая матрица
-     */
     public double[] secondSolution;
     public double[] Q;
     public double resultF;
     public double[] Ci;
+    public double[] nullCols;
     public int[] bi;
     /**
      * Смещение столбцов
@@ -68,6 +60,7 @@ public class SimplexTable {
         this.additionalVariables = new double[simplex.numOfEquations];
         this.mergedArray = merge(objectiveFunctionCoefficients, additionalVariables);
         this.Ci = new double[simplex.numOfEquations];
+        this.nullCols = new double[simplex.numOfEquations];
 
         bi = new int[simplex.numOfEquations];
         for (int i = 0; i < simplex.numOfEquations; i++) {
@@ -78,7 +71,7 @@ public class SimplexTable {
     public SimplexTable construct() {
         int countAnotherColl = 4;
         rowSize = simplex.numOfEquations + 3;
-        colSize = simplex.numOfVariables * 2 + countAnotherColl;
+        colSize = simplex.numOfVariables + simplex.numOfEquations + countAnotherColl;
         this.rowCols = new String[rowSize][colSize];
         // * Подготовка строк
         rowCols[0][0] = " ";
@@ -88,9 +81,12 @@ public class SimplexTable {
         // Прописывание значений функции и нулей
         for (int i = 0; i < simplex.numOfVariables; i++) {
             rowCols[0][i + countAnotherColl - 1] = String.valueOf(objectiveFunctionCoefficients[i]);
-            rowCols[0][i + simplex.numOfVariables + countAnotherColl - 1] = String.valueOf(Ci[i]);
             rowCols[1][i + countAnotherColl - 1] = "X" + (i + 1);
-            rowCols[1][i + simplex.numOfEquations + countAnotherColl - 1] = "X" + (i + simplex.numOfEquations + 1);
+        }
+
+        for (int i = 0; i < simplex.numOfEquations; i++) {
+            rowCols[0][i + simplex.numOfVariables + countAnotherColl - 1] = String.valueOf(nullCols[i]);
+            rowCols[1][i + simplex.numOfVariables + countAnotherColl - 1] = "X" + (simplex.numOfVariables + i + 1);
         }
 
         //  * Подготовка столбцов
@@ -124,9 +120,9 @@ public class SimplexTable {
             resultF = sum(multiply(additionalVariables, constants));
             rowCols[rowSize - 1][2] = String.valueOf(resultF);
             insertRow(firstSolution, rowSize - 1, startColumn);
-            minIndexFirstSolution = findMinIndex(firstSolution);
-            insertRow(secondSolution, rowSize - 1, startColumn + simplex.numOfEquations);
-            minIndexSecondSolution = findMinIndex(secondSolution);
+            // minIndexFirstSolution = findMaxModuleIndex(firstSolution);
+            insertRow(secondSolution, rowSize - 1, startColumn + simplex.numOfVariables);
+            // minIndexSecondSolution = findMaxModuleIndex(secondSolution);
         }
 
 
@@ -217,6 +213,7 @@ public class SimplexTable {
 
             System.out.println("|");
         }
+        // printF();
 
         System.out.print("\n".repeat(2));
         return this;
@@ -289,11 +286,6 @@ public class SimplexTable {
         return this;
     }
 
-    public SimplexTable setMinIndex(int minIndex) {
-        this.minIndexFirstSolution = minIndex;
-        return this;
-    }
-
     public SimplexTable setQ(double[] Q) {
         this.Q = Q;
         return this;
@@ -324,5 +316,13 @@ public class SimplexTable {
             String result = "\tX" + bi[i] + " = " + roundString(String.valueOf(constants[i]), 3);
             System.out.println(format(result, BOLD));
         }
+    }
+
+    public void printF() {
+        double result = 0;
+        for(int i = 0; i < simplex.numOfEquations; i++) {
+            result += simplex.objectiveFunctionCoefficients[i] * constants[i];
+        }
+        System.out.println("F = " + roundString(String.valueOf(Q[0]), 3));
     }
 }

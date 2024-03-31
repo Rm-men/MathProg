@@ -24,8 +24,8 @@ public class Simplex {
     int numOfEquations;
     int numOfVariables;
 
-    public Simplex(double[][] coefficients, double[] constants, double[] objectiveFunctionCoefficients) {
-        numOfEquations = coefficients.length;
+    public Simplex(double[][] coefficients, double[] constants, double[] objectiveFunctionCoefficients, SimplexMode simplexMode) {
+        numOfEquations = constants.length;
         numOfVariables = coefficients[0].length;
 
         this.coefficients = coefficients;
@@ -37,7 +37,7 @@ public class Simplex {
 
         SimplexTable firstSimplexTable = newStartSimplexTable();
 
-        int tableIndex = 2;
+        int tableIndex = 1;
         while (firstSimplexTable.isNotOptimal()) {
             firstSimplexTable = newSecondtSimplexTable(firstSimplexTable, tableIndex);
             tableIndex++;
@@ -182,7 +182,7 @@ public class Simplex {
         double[] Q = divide(constants, minCol);
 
         SimplexTable first = new SimplexTable(this)
-                .setTableName("Table 1")
+                .setTableName("Start table")
                 .setFirstMatrix(coefficients)
                 .setSecondMatrix(additionalMatrix)
                 .setConstants(constants)
@@ -197,7 +197,7 @@ public class Simplex {
     public SimplexTable newSecondtSimplexTable(SimplexTable first, int tableIndex) {
         int minQIndex = first.minQIndex;
         double[] minCol = first.minCol;
-        int minColIndex = first.minIndexFirstSolution;
+        int minColIndex = first.minColIndexSolution;
 
         double divideNumber = first.firstMatrix[minQIndex][minColIndex];
 
@@ -262,7 +262,7 @@ public class Simplex {
     }
 
     public static double[] calculateSolution(double[] first, double[][] second, double[] addition) {
-        int count = first.length;
+        int count = addition.length;
         double[] solutions = new double[count];
         for (int i = 0; i < count; i++) {
             solutions[i] = sum(multiply(first, getColumn(second, i))) - addition[i];
@@ -277,19 +277,30 @@ public class Simplex {
 
 
     public static double[][] calculateNewMatrix(double[][] original, SimplexTable oldTable) {
-        int matrixLen = original.length;
+        int colsSize = oldTable.simplex.numOfVariables;
+        int rowsSize = oldTable.simplex.numOfEquations;
         int minQIndex = oldTable.minQIndex;
-        int minColIndex = oldTable.minColIndexSolution;
         double[] minCol = oldTable.minCol;
+
         double[] minRowDivided = divide(original[minQIndex], minCol[minQIndex]);
 
-        for (int row = 0; row < matrixLen; row++) {
+        for (int row = 0; row < rowsSize; row++) {
             if (row != minQIndex) {
-                for (int col = 0; col < matrixLen; col++)
-                    original[row][col] -= minCol[row]*minRowDivided[col];
+                for (int col = 0; col < colsSize; col++) {
+                    if (col < minQIndex) {
+                        original[row][col] -= minCol[row] * minRowDivided[col];
+                    } else if (col > minQIndex) {
+                        original[row][col] -= minCol[row] * minRowDivided[col - 1];
+                    }
+                }
             }
         }
 
         return replaceRow(original, minQIndex, minRowDivided);
+    }
+
+
+    public enum SimplexMode{
+        MAX, MIN
     }
 }

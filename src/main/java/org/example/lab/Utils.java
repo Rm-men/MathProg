@@ -14,9 +14,6 @@ public class Utils {
 
     // region multiply
     public static double[] multiply(double[] arr1, double[] arr2) {
-        if (arr1.length != arr2.length) {
-            throw new IllegalArgumentException("Arrays must have the same length");
-        }
         double[] result = new double[arr1.length];
         for (int i = 0; i < arr1.length; i++) {
             result[i] = arr1[i] * arr2[i];
@@ -61,9 +58,6 @@ public class Utils {
         return result;
     }
     public static double[] divide(double[] arr1, double[] arr2) {
-        if (arr1.length != arr2.length) {
-            throw new IllegalArgumentException("Arrays must have the same length");
-        }
         double[] result = new double[arr1.length];
         for (int i = 0; i < arr1.length; i++) {
             result[i] = arr1[i] / arr2[i];
@@ -213,6 +207,19 @@ public class Utils {
             }
         }
         return minIndex;
+    }
+
+    public static Integer findMaxModuleIndex(double[] arr) {
+        if (arr == null) {
+            return null;
+        }
+        int maxIndex = 0;
+        for (int i = 1; i < arr.length; i++) {
+            if (Math.abs(arr[i]) > Math.abs(arr[maxIndex])) {
+                maxIndex = i;
+            }
+        }
+        return maxIndex;
     }
 
     public static String roundString(String value, int digitsAfterDot) {
