@@ -37,8 +37,10 @@ public class Simplex {
 
         SimplexTable firstSimplexTable = newStartSimplexTable();
 
+        int tableIndex = 2;
         while (firstSimplexTable.isNotOptimal()) {
-            firstSimplexTable = newSecondtSimplexTable(firstSimplexTable);
+            firstSimplexTable = newSecondtSimplexTable(firstSimplexTable, tableIndex);
+            tableIndex++;
         }
         firstSimplexTable.printSolution();
 
@@ -179,9 +181,8 @@ public class Simplex {
         double[] minCol = getColumn(coefficients, minIndexSolution);
         double[] Q = divide(constants, minCol);
 
-
         SimplexTable first = new SimplexTable(this)
-                .setTableName("First result")
+                .setTableName("Table 1")
                 .setFirstMatrix(coefficients)
                 .setSecondMatrix(additionalMatrix)
                 .setConstants(constants)
@@ -190,13 +191,10 @@ public class Simplex {
                 .setQ(Q)
                 .construct();
 
-
-        System.out.println("Столбец с минимальным значением: X" + (minIndexSolution + 1));
-        System.out.println("Строка с минимальным значением Q: " + (first.minRowIndexSolution + 1));
         return first.printCollRowsTable();
     }
 
-    public SimplexTable newSecondtSimplexTable(SimplexTable first) {
+    public SimplexTable newSecondtSimplexTable(SimplexTable first, int tableIndex) {
         int minQIndex = first.minQIndex;
         double[] minCol = first.minCol;
         int minColIndex = first.minIndexFirstSolution;
@@ -231,7 +229,7 @@ public class Simplex {
 
         SimplexTable secondSimplexTable = new SimplexTable(this)
                 .setCi(newCi)
-                .setTableName("First result")
+                .setTableName("Table " + (tableIndex))
                 .setFirstMatrix(newFirstMatrix)
                 .setSecondMatrix(newSecondMatrix)
                 .setConstants(newConstants)
@@ -241,8 +239,6 @@ public class Simplex {
                 .setBi(first.bi)
                 .construct();
 
-
-        System.out.println("Столбец с минимальным значением: X" + (minColIndex + 1));
         return secondSimplexTable.printCollRowsTable();
     }
 

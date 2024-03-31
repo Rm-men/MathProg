@@ -12,6 +12,5 @@ public class Main {
         double[] b = {240, 200, 160};
         double[] F = {4, 5, 4};
         Simplex simplex = new Simplex(A, b, F);
-        var result = simplex.buildSimplexTableau();
     }
 }

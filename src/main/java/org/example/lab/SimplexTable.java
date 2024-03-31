@@ -1,6 +1,6 @@
 package org.example.lab;
 
-import static org.example.lab.FormatTextUtils.TextFormat.GREEN;
+import static org.example.lab.FormatTextUtils.TextFormat.*;
 import static org.example.lab.FormatTextUtils.format;
 import static org.example.lab.Utils.*;
 
@@ -30,7 +30,8 @@ public class SimplexTable {
     double[] mergedArray;
     int minIndexFirstSolution;
     int minIndexSecondSolution;
-    int minQIndex;
+    Integer minQIndex;
+    Integer minColIndexSolution;
     // endregion
 
     String[][] rowCols;
@@ -53,8 +54,10 @@ public class SimplexTable {
      * Смещение столбцов
      */
     int colOffset = 2;
+    int colSize;
+    int rowSize;
 
-    int minColIndexSolution;
+
     int minRowIndexSolution;
     double[] minCol;
     double minQ;
@@ -74,9 +77,9 @@ public class SimplexTable {
 
     public SimplexTable construct() {
         int countAnotherColl = 4;
-        int rows = simplex.numOfEquations + 3;
-        int columns = simplex.numOfVariables * 2 + countAnotherColl;
-        this.rowCols = new String[rows][columns];
+        rowSize = simplex.numOfEquations + 3;
+        colSize = simplex.numOfVariables * 2 + countAnotherColl;
+        this.rowCols = new String[rowSize][colSize];
         // * Подготовка строк
         rowCols[0][0] = " ";
         rowCols[0][1] = "Ci";
@@ -98,7 +101,7 @@ public class SimplexTable {
         // *Столбец с bi
         updateBi(bi);
 
-        rowCols[rows - 1][1] = "di";
+        rowCols[rowSize - 1][1] = "di";
 
         // Столбец со свободными членами
         for (int curIndex = 0; curIndex < simplex.numOfEquations; curIndex++) {
@@ -119,23 +122,26 @@ public class SimplexTable {
         // * Последняя строка решений
         if (firstSolution != null && secondSolution != null) {
             resultF = sum(multiply(additionalVariables, constants));
-            rowCols[rows - 1][2] = String.valueOf(resultF);
-            insertRow(firstSolution, rows - 1, startColumn);
+            rowCols[rowSize - 1][2] = String.valueOf(resultF);
+            insertRow(firstSolution, rowSize - 1, startColumn);
             minIndexFirstSolution = findMinIndex(firstSolution);
-            insertRow(secondSolution, rows - 1, startColumn + simplex.numOfEquations);
+            insertRow(secondSolution, rowSize - 1, startColumn + simplex.numOfEquations);
             minIndexSecondSolution = findMinIndex(secondSolution);
         }
 
 
-        rowCols[1][columns - 1] = "Q";
+        rowCols[1][colSize - 1] = "Q";
         if (Q != null) {
             minQIndex = findMinIndex(Q);
-            insertColumn(Q, 2, columns - 1);
+            insertColumn(Q, 2, colSize - 1);
         }
 
         if (firstSolution != null) {
-            minColIndexSolution = findMinIndex(firstSolution);
-            minCol = getColumn(simplex.coefficients, minColIndexSolution);
+            int minIndexSolution = findMinIndex(firstSolution);
+            if (firstSolution[minIndexSolution] < 0) {
+                minColIndexSolution = minIndexSolution;
+                minCol = getColumn(simplex.coefficients, minColIndexSolution);
+            }
         }
         if (Q != null) {
             minRowIndexSolution = findMinIndex(Q);
@@ -155,7 +161,7 @@ public class SimplexTable {
     }
 
     public SimplexTable printCollRowsTable() {
-        System.out.println(tableName);
+        System.out.println(format(tableName, BOLD));
         int numColumns = rowCols[0].length;
         int[] columnWidths = new int[numColumns];
 
@@ -176,6 +182,31 @@ public class SimplexTable {
             String[] row = rowCols[rowIndex];
             for (int colIndex = 0; colIndex < numColumns; colIndex++) {
                 String format = "| %" + Math.max(columnWidths[colIndex], defaultLength) + "s ";
+                // * Форматы под подсветку
+                if (isNotOptimal()) {
+                    boolean isQColour = minQIndex != null &&
+                            rowIndex == minQIndex + colOffset && colIndex == colSize - 1;
+                    boolean isSolutionColour = minColIndexSolution != null &&
+                            rowIndex == rowSize - 1 && colIndex == minColIndexSolution + colOffset + 1;
+                    if (isQColour || isSolutionColour) {
+                        format = "| " + format("%" + Math.max(columnWidths[colIndex], defaultLength) + "s ", ORANGE);
+                    } else {
+                        boolean oldX = minQIndex != null &&
+                                rowIndex == minQIndex + colOffset && colIndex == colOffset - 1;
+                        if (oldX) {
+                            format = "| " + format("%" + Math.max(columnWidths[colIndex], defaultLength) + "s ", RED);
+                        }
+                        boolean newX = minColIndexSolution != null &&
+                                rowIndex == colOffset - 1 && colIndex == minColIndexSolution + colOffset + 1;
+                        if (newX) {
+                            format = "| " + format("%" + Math.max(columnWidths[colIndex], defaultLength) + "s ", BLUE);
+                        }
+                    }
+                } else {
+                    if (rowIndex != rowSize - 1 && colIndex == colOffset) {
+                        format = "| " + format("%" + Math.max(columnWidths[colIndex], defaultLength) + "s ", GREEN);
+                    }
+                }
                 System.out.printf(format, row[colIndex]);
             }
 
@@ -288,8 +319,10 @@ public class SimplexTable {
     }
 
     public void printSolution() {
+        System.out.println("Solution: ");
         for (int i = 0; i < firstSolution.length; i++) {
-            System.out.println("X" + bi[i] + " = " + roundString(String.valueOf(constants[i]), 3));
+            String result = "\tX" + bi[i] + " = " + roundString(String.valueOf(constants[i]), 3);
+            System.out.println(format(result, BOLD));
         }
     }
 }
