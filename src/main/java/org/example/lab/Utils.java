@@ -13,6 +13,17 @@ public class Utils {
 
 
     // region multiply
+    public static double[][]  multiply(double[][] matrix, double number) {
+        int rows = matrix.length;
+        int cols = matrix[0].length;
+
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                matrix[i][j] *= number;
+            }
+        }
+        return matrix;
+    }
     public static double[] multiply(double[] arr1, double[] arr2) {
         double[] result = new double[arr1.length];
         for (int i = 0; i < arr1.length; i++) {
@@ -43,7 +54,7 @@ public class Utils {
         }
         String[] result = new String[arr1.length];
         for (int i = 0; i < arr1.length; i++) {
-            result[i] = "("+arr1[i] + "*" + arr2[i]+")";
+            result[i] = "(" + arr1[i] + "*" + arr2[i] + ")";
         }
         return result;
     }
@@ -57,6 +68,7 @@ public class Utils {
         }
         return result;
     }
+
     public static double[] divide(double[] arr1, double[] arr2) {
         double[] result = new double[arr1.length];
         for (int i = 0; i < arr1.length; i++) {
@@ -90,7 +102,7 @@ public class Utils {
     public static String[] divideString(double[] arr1, double[] arr2) {
         String[] result = new String[arr1.length];
         for (int i = 0; i < arr1.length; i++) {
-            result[i] = "("+arr1[i] + "/" + arr2[i]+")";
+            result[i] = "(" + arr1[i] + "/" + arr2[i] + ")";
         }
         return result;
     }
@@ -117,7 +129,7 @@ public class Utils {
 
     }
 
-    public static double[] subtraction(double[] arr1, double arg){
+    public static double[] subtraction(double[] arr1, double arg) {
         double[] result = new double[arr1.length];
         for (int i = 0; i < arr1.length; i++) {
             result[i] = arr1[i] - arg;
@@ -132,7 +144,6 @@ public class Utils {
         }
         return result;
     }
-
 
 
     public static String[] subtractionString(double[] arr1, double[] arr2) {
@@ -164,7 +175,7 @@ public class Utils {
     // endregion sum
 
     // region
-    public static double[][] replaceRow (double[][] original, int row, double[] replacedRow){
+    public static double[][] replaceRow(double[][] original, int row, double[] replacedRow) {
         for (int i = 0; i < original[row].length; i++) {
             original[row][i] = replacedRow[i];
         }
@@ -209,6 +220,36 @@ public class Utils {
         return minIndex;
     }
 
+    public static Integer findMaxIndex(double[] arr) {
+        if (arr == null) {
+            return null;
+        }
+        int maxIndex = 0;
+        for (int i = 1; i < arr.length; i++) {
+            if (arr[i] > arr[maxIndex]) {
+                maxIndex = i;
+            }
+        }
+        return maxIndex;
+    }
+
+    public static Integer findMinPositiveIndex(double[] arr) {
+        if (arr == null) {
+            return null;
+        }
+        int minIndex = 0;
+        double minValue = Double.MAX_VALUE;
+        Integer index = null;
+        for (int i = 0; i < arr.length; i++) {
+            if (arr[i] >= 0 && arr[i] < minValue) {
+                minValue =  arr[i];
+                minIndex = i;
+                index = i;
+            }
+        }
+        return index;
+    }
+
     public static Integer findMaxModuleIndex(double[] arr) {
         if (arr == null) {
             return null;
@@ -238,5 +279,28 @@ public class Utils {
         }
 
         return value;
+    }
+
+
+    public static double[][] invertMatrix(double[][] matrix) {
+        int rows = matrix.length;
+        int cols = matrix[0].length;
+
+        // Создаем новую матрицу для хранения инвертированных строк и столбцов
+        double[][] invertedMatrix = new double[cols][rows];
+
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                invertedMatrix[j][i] = matrix[i][j];
+            }
+        }
+
+        // Копируем инвертированную матрицу обратно в исходную
+        for (int i = 0; i < cols; i++) {
+            for (int j = 0; j < rows; j++) {
+                matrix[j][i] = invertedMatrix[i][j];
+            }
+        }
+        return invertedMatrix;
     }
 }
