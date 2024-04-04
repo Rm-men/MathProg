@@ -102,8 +102,6 @@ public class Simplex {
         double[][] newFirstMatrix = calculateNewMatrix(first.firstMatrix, first);
         double[][] newSecondMatrix = calculateNewMatrix(first.secondMatrix, first);
 
-        // double[] newFirst = divideRow(newConstants, first.minQIndex, divideNumber);
-
         double[] newCi = first.Ci;
         newCi[minQIndex] = objectiveFunctionCoefficients[minColIndex];
 
@@ -189,7 +187,8 @@ public class Simplex {
 
     public enum SimplexMode {
         DIRECT("Прямая задача \n"),
-        DOUBLE("Двойственный симплекс\n");
+        DOUBLE("Двойственный симплекс\n"),
+        INT("Двойственный симплекс\n");
 
         private final String name;
 

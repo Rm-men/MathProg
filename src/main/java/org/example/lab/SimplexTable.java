@@ -1,5 +1,8 @@
 package org.example.lab;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import static org.example.lab.FormatTextUtils.TextFormat.*;
 import static org.example.lab.FormatTextUtils.format;
 import static org.example.lab.Utils.*;
@@ -146,7 +149,6 @@ public class SimplexTable {
         return this;
     }
 
-
     private void updateBi(int[] newBi) {
         bi = newBi;
         for (int i = 0; i < newBi.length; i++) {
@@ -197,10 +199,23 @@ public class SimplexTable {
                         }
                     }
                 } else {
+                    if (simplex.simplexMode.equals(Simplex.SimplexMode.INT)) {
+                        Map map = new HashMap();
+                        for (int i = 0; i < simplex.objectiveFunctionCoefficients.length; i++) {
+                            map.put(i + 1, 0);
+                        }
+                        for (int i = 0; i < simplex.constants.length; i++) {
+                            if (map.get(bi[i]) != null) {
+                                map.remove(bi[i]);
+                                map.put(bi[i], simplex.objectiveFunctionCoefficients[bi[i] - 1]);
+                            }
+                        }
+
+
+                    }
                     if (rowIndex != rowSize - 1 && colIndex == colOffset) {
                         format = "| " + format("%" + Math.max(columnWidths[colIndex], defaultLength) + "s ", GREEN);
-                    }
-                    else if (rowIndex == rowSize -1 && colIndex == colOffset) {
+                    } else if (rowIndex == rowSize - 1 && colIndex == colOffset) {
                         format = "| " + format("%" + Math.max(columnWidths[colIndex], defaultLength) + "s ", CYAN);
                     }
                 }
@@ -313,7 +328,7 @@ public class SimplexTable {
 
     public boolean allNegative() {
         for (double solution : firstSolution) {
-            if (solution > 0) {
+            if (solution >= 0) {
                 return false;
             }
         }
@@ -323,7 +338,7 @@ public class SimplexTable {
 
     public void printF() {
         double result = 0;
-        for(int i = 0; i < simplex.numOfEquations; i++) {
+        for (int i = 0; i < simplex.numOfEquations; i++) {
             result += simplex.objectiveFunctionCoefficients[i] * constants[i];
         }
         System.out.println("F = " + roundString(String.valueOf(Q[0]), 3));
