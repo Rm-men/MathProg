@@ -92,14 +92,14 @@ public class Main {
 //        double[] F = {3, -1, 8, 2};
 //        Simplex simplex = new Simplex(A, b, F, INT);
 
-        double[][] A = {
-                {4, 7},
-                {8, 3},
-                {9, 5}
-        };
-        double[] b = {49, 46, 70};
-        double[] F = {6, 5};
-        Simplex simplex = new Simplex(A, b, F, INT);
+//        double[][] A = {
+//                {4, 7},
+//                {8, 3},
+//                {9, 5}
+//        };
+//        double[] b = {49, 46, 70};
+//        double[] F = {6, 5};
+//        Simplex simplex = new Simplex(A, b, F, INT);
 
        // *V3
 /*         double[][] A = {
@@ -110,6 +110,7 @@ public class Main {
         double[] b = {5, 4, 24};
         double[] F = {3, -1, 8, 2};
         Simplex simplex = new Simplex(A, b, F, DIRECT);*/
+
 
     }
 }
