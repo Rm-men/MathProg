@@ -188,9 +188,9 @@ public class Simplex {
     public enum SimplexMode {
         DIRECT("Прямая задача \n"),
         DOUBLE("Двойственный симплекс\n"),
-        INT("Двойственный симплекс\n");
+        INT("Решение целочисленной задачи\n");
 
-        private final String name;
+        public final String name;
 
         SimplexMode(String name) {
             this.name = name;

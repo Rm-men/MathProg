@@ -1,5 +1,7 @@
 package org.example.lab;
 
+import org.example.Main;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -7,9 +9,10 @@ import java.util.Map;
 
 import static org.example.lab.FormatTextUtils.TextFormat.*;
 import static org.example.lab.FormatTextUtils.format;
+import static org.example.lab.Simplex.SimplexMode.INT;
 import static org.example.lab.Utils.*;
 
-public class SimplexTable {
+public class SimplexTable extends Table {
     // region Задаваемые параметры таблицы
     /**
      * Дополнительное количество строк по умолчанию
@@ -20,7 +23,6 @@ public class SimplexTable {
      */
     final int additionColumns = 3;
 
-    public String tableName;
     // endregion
 
     // region Содержимое таблицы
@@ -35,8 +37,6 @@ public class SimplexTable {
     Integer targetQIndex;
     Integer targetColIndexSolution;
     // endregion
-
-    String[][] rowCols;
     Simplex simplex;
 
     public double[] firstSolution;
@@ -52,7 +52,6 @@ public class SimplexTable {
     int colOffset = 2;
     int colSize;
     int rowSize;
-
 
     int minRowIndexSolution;
     double[] minCol;
@@ -221,67 +220,107 @@ public class SimplexTable {
 
         System.out.print("\n".repeat(2));
 
-        if (simplex.simplexMode.equals(Simplex.SimplexMode.INT)) {
-            Map<Integer, Double> coefMap = new HashMap();
-            Map<Integer, Double> valueMap = new HashMap();
-            for (int i = 0; i < simplex.objectiveFunctionCoefficients.length; i++) {
-                coefMap.put(i + 1, 0.0);
-                valueMap.put(i + 1, 0.0);
-            }
-            for (int i = 0; i < simplex.constants.length; i++) {
-                if (coefMap.get(bi[i]) != null) {
-                    coefMap.remove(bi[i]);
-                    valueMap.remove(bi[i]);
-                    coefMap.put(bi[i], simplex.objectiveFunctionCoefficients[bi[i] - 1]);
-                    valueMap.put(bi[i], constants[i]);
-                }
-            }
-
-            int n = coefMap.values().size();
-            Map<Integer, Integer> bestCombination = new HashMap<>();
-            Double[] coefArray = coefMap.values().toArray(new Double[0]);
-            Double[] valueArray = valueMap.values().toArray(new Double[0]);
-            double bestSum = Double.NEGATIVE_INFINITY;
-
-            double sum = 0.0;
-            for (int j = 0; j < n; j++) {
-                sum += valueArray[j] * coefArray[j];
-            }
-
-            for (int i = 0; i < (1 << n); i++) {
-                Map<Integer, Integer> combination = new HashMap<>();
-                double roundedUpSum = 0.0;
-                double roundedDownSum = 0.0;
-
-                for (int j = 0; j < n; j++) {
-                    if ((i & (1 << j)) > 0) {
-                        int roundedUp = (int) Math.ceil(valueArray[j]);
-                        combination.put(j + 1, roundedUp);
-                        roundedUpSum += roundedUp * coefArray[j];
-                    }
-                }
-
-                if (roundedUpSum <= resultF && roundedUpSum >= bestSum) {
-                    bestCombination = new HashMap<>(combination);
-                    bestSum = roundedUpSum;
-                } else {
-                    for (int j = 0; j < n; j++) {
-                        int roundedDown = (int) Math.floor(valueArray[j]);
-                        combination.put(j + 1, roundedDown);
-                        roundedDownSum += roundedDown * coefArray[j];
-
-                        if (roundedDownSum <= resultF && roundedDownSum >= bestSum) {
-                            bestCombination = new HashMap<>(combination);
-                            bestSum = roundedDownSum;
-                        }
-                    }
-                }
-            }
-
-            System.out.println("Значения X: " + bestCombination + "\n Значение функции = " + bestSum);
+        if (!isNotOptimal() && simplex.simplexMode.equals(INT)) {
+            solveBranchAndBound();
         }
+
         return this;
     }
+
+
+    public void solveBranchAndBound() {
+        System.out.println("\n" + "\t" + format("Решение симплекс методом завершено. Начат подбор оптимального целочисленного значения", BOLD));
+        System.out.println("");
+        Map<Integer, Double> coefMap = new HashMap<>();
+        Map<Integer, Double> valueMap = new HashMap<>();
+        for (int i = 0; i < simplex.objectiveFunctionCoefficients.length; i++) {
+            coefMap.put(i + 1, 0.0);
+            valueMap.put(i + 1, 0.0);
+        }
+        for (int i = 0; i < simplex.constants.length; i++) {
+            if (coefMap.get(bi[i]) != null) {
+                coefMap.remove(bi[i]);
+                valueMap.remove(bi[i]);
+                coefMap.put(bi[i], simplex.objectiveFunctionCoefficients[bi[i] - 1]);
+                valueMap.put(bi[i], constants[i]);
+            }
+        }
+
+        int n = coefMap.values().size();
+        Map<Integer, Double> closestIntegerSum = new HashMap<>();
+        Double[] coefArray = coefMap.values().toArray(new Double[0]);
+        Double[] valueArray = valueMap.values().toArray(new Double[0]);
+        Double bestSum = Double.NEGATIVE_INFINITY;
+
+        List<Map<Integer, Double>> combinations = SimplexTable.roundCombinations(valueMap);
+
+        int iterations = 1;
+        for (Map<Integer, Double> combination : combinations) {
+            System.out.println("\tИтерация " + iterations++ + ": ");
+            double sum = 0.0;
+            for (int j = 0; j < n; j++) {
+                sum += combination.get(bi[j]) * coefArray[j];
+            }
+ /*           if (bestSum == null) {
+                bestSum = sum;
+                closestIntegerSum = new HashMap<>(combination);
+            }*/
+            for (int j = 0; j < n; j++) {
+                System.out.println("x" + bi[j] + ": " + format(roundString(coefArray[j].toString(), 0))
+                        + " * " + format(roundString(combination.get(bi[j]).toString(), 0)) + " = " + format(roundString(String.valueOf(coefArray[j] * combination.get(bi[j])), 0)));
+            }
+            if (isSumCloserToResult(sum, bestSum, resultF)) {
+                closestIntegerSum = new HashMap<>(combination);
+                bestSum = sum;
+                System.out.println("F = " + format(String.valueOf(resultF), CYAN) + " -> " + format(String.valueOf(sum), PURPLE));
+
+            }
+            else {
+                System.out.println("F = " + format(String.valueOf(resultF)) + " -> " + format(String.valueOf(sum)));
+            }
+            System.out.println();
+        }
+        System.out.println("\t" +
+                format("Лучшее решение:", BOLD));
+        for (int i = 0;i < n; i++) {
+            System.out.println("x" + bi[i] + ": " + format(valueMap.get(bi[i]).toString(), GREEN)
+                    + " -> " + format(roundString(closestIntegerSum.get(bi[i]).toString(), 0), YELLOW, BOLD));
+        }
+        System.out.println("F = " +
+                format(String.valueOf(resultF), CYAN) + " -> " +
+                format(roundString(String.valueOf(bestSum), 0), YELLOW, UNDERLINE, BOLD));
+    }
+    public boolean isSumCloserToResult(double sum, double bestSum, double resultF) {
+        double distanceSum = Math.abs(resultF - sum);    // Расстояние от sum до resultF
+        double distanceBestSum = Math.abs(resultF - bestSum);  // Расстояние от bestSum до resultF
+
+        return distanceSum <= distanceBestSum; // Возвращаем true, если sum ближе к resultF, чем bestSum
+    }
+
+    public static List<Map<Integer, Double>> roundCombinations(Map<Integer, Double> coefMap) {
+        List<Map<Integer, Double>> result = new ArrayList<>();
+        roundCombinationsHelper(coefMap, new ArrayList<>(coefMap.keySet()), 0, new HashMap<>(), result);
+        return result;
+    }
+
+    private static void roundCombinationsHelper(Map<Integer, Double> coefMap, List<Integer> keys, int index, Map<Integer, Double> current, List<Map<Integer, Double>> result) {
+        if (index == keys.size()) {
+            result.add(new HashMap<>(current));
+            return;
+        }
+
+        int key = keys.get(index);
+        double value = coefMap.get(key);
+
+        current.put(key, Math.ceil(value)); // Round up
+        roundCombinationsHelper(coefMap, keys, index + 1, current, result);
+        current.remove(key);
+
+        current.put(key, Math.floor(value)); // Round down
+        roundCombinationsHelper(coefMap, keys, index + 1, current, result);
+        current.remove(key);
+    }
+
 
     public String removeCharactersAfterDot(String input, int offset) {
         int dotIndex = input.indexOf('.');
