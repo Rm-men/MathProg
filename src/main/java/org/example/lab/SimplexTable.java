@@ -272,11 +272,11 @@ public class SimplexTable extends Table {
             if (isSumCloserToResult(sum, bestSum, resultF)) {
                 closestIntegerSum = new HashMap<>(combination);
                 bestSum = sum;
-                System.out.println("F = " + format(String.valueOf(resultF), CYAN) + " -> " + format(String.valueOf(sum), PURPLE));
+                System.out.println("F = " + format(String.valueOf(resultF), CYAN) + " -> " + format(roundString(String.valueOf(sum),0), PURPLE));
 
             }
             else {
-                System.out.println("F = " + format(String.valueOf(resultF)) + " -> " + format(String.valueOf(sum)));
+                System.out.println("F = " + format(String.valueOf(resultF)) + " -> " + format(roundString(String.valueOf(sum),0)));
             }
             System.out.println();
         }
