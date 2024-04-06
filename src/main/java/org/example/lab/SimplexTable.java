@@ -1,6 +1,8 @@
 package org.example.lab;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.example.lab.FormatTextUtils.TextFormat.*;
@@ -199,20 +201,6 @@ public class SimplexTable {
                         }
                     }
                 } else {
-                    if (simplex.simplexMode.equals(Simplex.SimplexMode.INT)) {
-                        Map map = new HashMap();
-                        for (int i = 0; i < simplex.objectiveFunctionCoefficients.length; i++) {
-                            map.put(i + 1, 0);
-                        }
-                        for (int i = 0; i < simplex.constants.length; i++) {
-                            if (map.get(bi[i]) != null) {
-                                map.remove(bi[i]);
-                                map.put(bi[i], simplex.objectiveFunctionCoefficients[bi[i] - 1]);
-                            }
-                        }
-
-
-                    }
                     if (rowIndex != rowSize - 1 && colIndex == colOffset) {
                         format = "| " + format("%" + Math.max(columnWidths[colIndex], defaultLength) + "s ", GREEN);
                     } else if (rowIndex == rowSize - 1 && colIndex == colOffset) {
@@ -232,6 +220,66 @@ public class SimplexTable {
         // printF();
 
         System.out.print("\n".repeat(2));
+
+        if (simplex.simplexMode.equals(Simplex.SimplexMode.INT)) {
+            Map<Integer, Double> coefMap = new HashMap();
+            Map<Integer, Double> valueMap = new HashMap();
+            for (int i = 0; i < simplex.objectiveFunctionCoefficients.length; i++) {
+                coefMap.put(i + 1, 0.0);
+                valueMap.put(i + 1, 0.0);
+            }
+            for (int i = 0; i < simplex.constants.length; i++) {
+                if (coefMap.get(bi[i]) != null) {
+                    coefMap.remove(bi[i]);
+                    valueMap.remove(bi[i]);
+                    coefMap.put(bi[i], simplex.objectiveFunctionCoefficients[bi[i] - 1]);
+                    valueMap.put(bi[i], constants[i]);
+                }
+            }
+
+            int n = coefMap.values().size();
+            Map<Integer, Integer> bestCombination = new HashMap<>();
+            Double[] coefArray = coefMap.values().toArray(new Double[0]);
+            Double[] valueArray = valueMap.values().toArray(new Double[0]);
+            double bestSum = Double.NEGATIVE_INFINITY;
+
+            double sum = 0.0;
+            for (int j = 0; j < n; j++) {
+                sum += valueArray[j] * coefArray[j];
+            }
+
+            for (int i = 0; i < (1 << n); i++) {
+                Map<Integer, Integer> combination = new HashMap<>();
+                double roundedUpSum = 0.0;
+                double roundedDownSum = 0.0;
+
+                for (int j = 0; j < n; j++) {
+                    if ((i & (1 << j)) > 0) {
+                        int roundedUp = (int) Math.ceil(valueArray[j]);
+                        combination.put(j + 1, roundedUp);
+                        roundedUpSum += roundedUp * coefArray[j];
+                    }
+                }
+
+                if (roundedUpSum <= resultF && roundedUpSum >= bestSum) {
+                    bestCombination = new HashMap<>(combination);
+                    bestSum = roundedUpSum;
+                } else {
+                    for (int j = 0; j < n; j++) {
+                        int roundedDown = (int) Math.floor(valueArray[j]);
+                        combination.put(j + 1, roundedDown);
+                        roundedDownSum += roundedDown * coefArray[j];
+
+                        if (roundedDownSum <= resultF && roundedDownSum >= bestSum) {
+                            bestCombination = new HashMap<>(combination);
+                            bestSum = roundedDownSum;
+                        }
+                    }
+                }
+            }
+
+            System.out.println("Значения X: " + bestCombination + "\n Значение функции = " + bestSum);
+        }
         return this;
     }
 
@@ -334,7 +382,6 @@ public class SimplexTable {
         }
         return true;
     }
-
 
     public void printF() {
         double result = 0;

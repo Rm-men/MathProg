@@ -16,7 +16,17 @@ public class Main {
         };
         double[] b = {240, 200, 160};
         double[] F = {4, 5, 4};
-        Simplex simplexDIRECT = new Simplex(A, b, F,  DIRECT);*/
+        Simplex simplexDIRECT = new Simplex(A, b, F,  DIRECT);
+*/
+        //  Прямая INT
+//        double[][] A = {
+//                {2, 3, 6},
+//                {4, 2, 4},
+//                {4, 6, 8}
+//        };
+//        double[] b = {240, 200, 160};
+//        double[] F = {4, 5, 4};
+//        Simplex simplexDIRECT = new Simplex(A, b, F,  INT);
 
         // * Обратная
 /*
@@ -73,13 +83,22 @@ public class Main {
         Simplex simplex = new Simplex(A, b, F, DIRECT);*/
 
         // *V1 INT
+//        double[][] A = {
+//                {2, 8, 3, 4},
+//                {-1, 3, 1, 4},
+//                {5, 1, 2, 4}
+//        };
+//        double[] b = {5, 4, 24};
+//        double[] F = {3, -1, 8, 2};
+//        Simplex simplex = new Simplex(A, b, F, INT);
+
         double[][] A = {
-                {2, 8, 3, 4},
-                {-1, 3, 1, 4},
-                {5, 1, 2, 4}
+                {4, 7},
+                {8, 3},
+                {9, 5}
         };
-        double[] b = {5, 4, 24};
-        double[] F = {3, -1, 8, 2};
+        double[] b = {49, 46, 70};
+        double[] F = {6, 5};
         Simplex simplex = new Simplex(A, b, F, INT);
 
        // *V3
