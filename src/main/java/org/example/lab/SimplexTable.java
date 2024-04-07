@@ -96,7 +96,7 @@ public class SimplexTable extends Table {
         insertColumn(Ci, 2, 0);
         rowCols[1][1] = "bi";
 
-        // *Столбец с bi
+        // * Столбец с bi
         updateBi(bi);
 
         rowCols[rowSize - 1][1] = "di";

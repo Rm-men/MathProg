@@ -1,6 +1,6 @@
 package org.example.lab;
 
-public class Utils {
+public abstract class Utils {
     public static int defaultLength = 3;
 
     public static double[][] createIdentityMatrix(int size) {
@@ -302,5 +302,13 @@ public class Utils {
             }
         }
         return invertedMatrix;
+    }
+
+    public static int[] generateArray(int length) {
+        int[] newArray = new int[length];
+        for (int i = 0; i < length; i++) {
+            newArray[i] = i + 1;
+        }
+        return newArray;
     }
 }

@@ -35,19 +35,23 @@ public class TransportProblemSolver {
                 {7, 2, 1, 5},
                 {6, 1, 4, 2}
         };
-        int[] supply = {30, 25, 20};
-        int[] demand = {20, 15, 25, 20};
+        int[] supply = {30, 25, 20}; // запасы
+        int[] demand = {20, 15, 25, 20}; // потребности
 
         TransportProblemSolver solver = new TransportProblemSolver();
         int[][] result = solver.solveTransportProblem(costs, supply, demand);
 
-        System.out.println("Оптимальное распределение:");
-        for (int i = 0; i < result.length; i++) {
-            for (int j = 0; j < result[i].length; j++) {
-                System.out.print(result[i][j] + "\t");
-            }
-            System.out.println();
-        }
+/*        int[][] costs2 = {
+                {3, 7, 6, 7},
+                {6, 4, 1, 5},
+                {4, 5, 2, 3}
+        };
+        int[] supply2 = {30, 40, 50}; // запасы
+        int[] demand2 = {15, 45, 25, 35}; // потребности
+
+
+        TransportProblemSolver solver = new TransportProblemSolver();
+        int[][] result = solver.solveTransportProblem(costs2, supply2, demand2);*/
     }
 
     public int[][] solveTransportProblem(int[][] costs, int[] supply, int[] demand) {
@@ -55,25 +59,37 @@ public class TransportProblemSolver {
         int n = demand.length; // количество потребителей
         int[][] result = new int[m][n]; // результирующая матрица
 
+        TransportTable table = new TransportTable(costs, supply, demand, "Изначальная таблица", costs)
+                .printCollRowsTable();
+
+        int counter = 1;
         // Заполняем базис методом минимального элемента
         while (true) {
             int[] minCostCell = findMinCostCell(costs); // находим ячейку с минимальной стоимостью
             int i = minCostCell[0];
             int j = minCostCell[1];
-            if (costs[i][j] == Integer.MAX_VALUE) // если все ячейки уже определены
+            if (costs[i][j] == Integer.MAX_VALUE) {// если все ячейки уже определены
+                System.out.println("Заполнение базиса методом минимального элемента завершено - все ячейки определены");
                 break;
+            }
             int quantity = Math.min(supply[i], demand[j]); // определяем минимальное количество товара для перемещения
             result[i][j] = quantity;
             supply[i] -= quantity;
             demand[j] -= quantity;
             costs[i][j] = Integer.MAX_VALUE; // помечаем использованную ячейку
+
+            table = new TransportTable(costs, supply, demand, "Таблица " + counter, result, table)
+                    .printCollRowsTable();
+            counter++;
         }
 
         // Решаем задачу методом дифференциальных рент
         while (true) {
             int[] uv = computeUV(result, costs); // вычисляем u и v
-            if (uv == null) // если не удалось вычислить, значит решение найдено
+            if (uv == null) {// если не удалось вычислить, значит решение найдено
+                System.out.println("Решение задачи методом дифференциальных рент завершено");
                 break;
+            }
             int u[] = new int[m];
             int v[] = new int[n];
             for (int i = 0; i < m; i++) {
@@ -91,6 +107,11 @@ public class TransportProblemSolver {
             result[i][j] = Math.min(supply[i], demand[j]); // перемещаем товар
             supply[i] -= result[i][j];
             demand[j] -= result[i][j];
+
+            table = new TransportTable(costs, supply, demand, "Таблица " + counter, result, table)
+                    .printCollRowsTable();
+            counter++;
+
         }
 
         return result;
